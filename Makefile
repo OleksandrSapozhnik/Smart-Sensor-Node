@@ -10,25 +10,40 @@ BUILD_DIR := build
 SRC := $(shell find $(SRC_DIR) -name '*.c')
 OBJ := $(patsubst $(SRC_DIR)/%.c, $(BUILD_DIR)/%.o, $(SRC))
 
-# ====== DEFAULT RULE ======
+# Automatically find all directories containing .h files
+INCLUDE_DIRS := $(shell find $(SRC_DIR) -type d)
+INCLUDE_FLAGS := $(addprefix -I,$(INCLUDE_DIRS))
+
+# DEFAULT RULE 
 all: $(BUILD_DIR)/$(TARGET)
 
-# ====== BUILD ======
+# BUILD 
 $(BUILD_DIR)/$(TARGET): $(OBJ)
 	$(CC) $(OBJ) -o $@ $(LDFLAGS)
 
-# Build object files (with subdirectory support)
+# Build object files (with automatic include paths)
 $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -I$(SRC_DIR) -c $< -o $@
+	$(CC) $(CFLAGS) $(INCLUDE_FLAGS) -c $< -o $@
 
-# ====== RUN ======
+# RUN 
 run: all
 	@./$(BUILD_DIR)/$(TARGET)
 
-# ====== CLEAN ======
+# CLEAN 
 clean:
 	rm -rf $(BUILD_DIR)
 	@echo "Clean complete"
 
-.PHONY: all run clean
+# DEBUG INFO 
+info:
+	@echo "Source files:"
+	@echo "$(SRC)"
+	@echo ""
+	@echo "Include directories:"
+	@echo "$(INCLUDE_DIRS)"
+	@echo ""
+	@echo "Include flags:"
+	@echo "$(INCLUDE_FLAGS)"
+
+.PHONY: all run clean info
